@@ -17,7 +17,7 @@ public class MockUWorldDataService : IUWorldDataService
             {
                 Email = email, FullName = "Unknown Customer", SubscriptionName = "N/A",
                 SubscriptionStatus = "Unknown", UsagePercent = 0, PurchaseDate = SampleDataStore.Today,
-                RefundWindowDays = 14, IsActivated = false
+                RefundWindowDays = 14, IsActivated = false, IsKnown = false
             };
         return Task.FromResult<CustomerProfile?>(profile);
     }

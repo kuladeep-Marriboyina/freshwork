@@ -40,13 +40,64 @@ builder.Services.AddScoped<IPolicyRule, AccessIssueRule>();
 builder.Services.AddScoped<IPolicyRule, ExtendSubscriptionRule>();
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-// FDK apps run inside an iframe on Freshworks-owned domains that vary, so for the
-// demo we allow any origin (no credentials are used). Tighten for production.
+// The sidebar calls the backend through Freshworks request templates (server to
+// server), so browsers only need CORS for the configured origins.
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+    p.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
+
+// Diagnostic request log (no secrets / personal data): method, path, status,
+// whether a key was sent, and which query parameters were present.
+app.Use(async (ctx, next) =>
+{
+    await next();
+    if (!ctx.Request.Path.StartsWithSegments("/api")) return;
+    var q = ctx.Request.Query;
+    var log = ctx.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Requests");
+    log.LogInformation("{Method} {Path} -> {Status} | key={HasKey} fwd={Fwd} | params=[{Params}] emailLen={EmailLen}",
+        ctx.Request.Method, ctx.Request.Path, ctx.Response.StatusCode,
+        ctx.Request.Headers.ContainsKey("X-Copilot-Key"),
+        ctx.Request.Headers.ContainsKey("X-Forwarded-For"),
+        string.Join(",", q.Keys.Select(k => $"{k}:{q[k].ToString().Length}{(q[k].ToString().Contains("<%") ? "(unrendered)" : "")}")),
+        q["email"].ToString().Length);
+});
+
 app.UseCors();
+
+// ── API key check ────────────────────────────────────────────────────────────
+// Any request that did not originate on this machine (e.g. arrived through a
+// tunnel or a hosted deployment) must send X-Copilot-Key = Copilot:ApiSecret.
+// Local requests (demo.html / users.html on localhost) are allowed without it.
+var apiSecret = builder.Configuration["Copilot:ApiSecret"];
+app.Use(async (ctx, next) =>
+{
+    var path = ctx.Request.Path;
+    bool isProtected = path.StartsWithSegments("/api") || path.StartsWithSegments("/webhook");
+    if (!isProtected || HttpMethods.IsOptions(ctx.Request.Method)) { await next(); return; }
+
+    var remoteIp = ctx.Connection.RemoteIpAddress;
+    bool isLocal = remoteIp is not null && System.Net.IPAddress.IsLoopback(remoteIp)
+                   && !ctx.Request.Headers.ContainsKey("X-Forwarded-For")
+                   && !ctx.Request.Headers.ContainsKey("X-Forwarded-Host")
+                   && ctx.Request.Host.Host is "localhost" or "127.0.0.1";
+    if (isLocal) { await next(); return; }
+
+    var supplied = ctx.Request.Headers["X-Copilot-Key"].ToString();
+    bool ok = !string.IsNullOrEmpty(apiSecret) && !string.IsNullOrEmpty(supplied)
+              && System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                     System.Text.Encoding.UTF8.GetBytes(supplied),
+                     System.Text.Encoding.UTF8.GetBytes(apiSecret));
+    if (!ok)
+    {
+        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await ctx.Response.WriteAsJsonAsync(new { error = "missing or invalid X-Copilot-Key" });
+        return;
+    }
+    await next();
+});
+
 app.UseStaticFiles();
 app.MapGet("/", () => Results.Redirect("/demo.html"));
 
@@ -56,7 +107,33 @@ async Task<(IntentResult intent, CustomerProfile customer, Decision decision)> A
     IntentDetector detector, IUWorldDataService data, PolicyEngine engine, PolicyOptions opts)
 {
     var intent = detector.Detect(subject, description);
-    var customer = await data.GetCustomerByEmailAsync(email) ?? new CustomerProfile { Email = email, FullName = "Customer" };
+    var customer = await data.GetCustomerByEmailAsync(email)
+                   ?? new CustomerProfile { Email = email, FullName = "Customer", IsKnown = false };
+
+    // Decide on the subscription the ticket is about (e.g. "Step 2" vs "Step 1").
+    if (customer.IsKnown)
+    {
+        Customer360? full;
+        // Demo data: several people can share one email — use the one the ticket names.
+        var named = app.Configuration.GetValue("UWorldDb:UseMockData", true)
+            ? SampleDataStore.Resolve(email, $"{subject} {description}") : null;
+        if (named is not null) { customer = named.Profile; full = named.Full; }
+        else full = await app.Services.GetRequiredService<IUWorld360DataService>().GetCustomer360Async(email);
+        customer = SubscriptionSelector.ForTicket(customer, full, subject, description);
+    }
+
+    // No UWorld account for this email: never auto-reply or change the ticket —
+    // a decision built on an empty placeholder profile would be wrong.
+    if (!customer.IsKnown)
+        return (intent, customer, PolicyDecisions.AgentReview("customer_not_found",
+            $"No UWorld account found for {email} — verify the customer before acting.",
+            new[]
+            {
+                "Check the requester's email for typos or ask for the email on their UWorld account.",
+                "Search UWorld by name or phone if the email does not match.",
+                "Reply manually once the account is confirmed."
+            }));
+
     var ctx = new PolicyContext
     {
         Intent = intent.Intent,
@@ -105,8 +182,31 @@ app.MapPost("/webhook/ticket", async (
     IntentDetector detector, IUWorldDataService data, PolicyEngine engine,
     PolicyOptions opts, FreshdeskClient freshdesk, ILogger<Program> log) =>
 {
-    if (string.IsNullOrWhiteSpace(payload.Email) || payload.TicketId <= 0)
-        return Results.BadRequest(new { error = "ticketId and email are required" });
+    if (payload.TicketId <= 0)
+        return Results.BadRequest(new { error = "ticketId is required" });
+
+    // Freshdesk may retry a webhook: handle each ticket at most once per run.
+    if (!HandledTickets.TryAdd(payload.TicketId))
+    {
+        log.LogInformation("Ticket {Id}: already handled, skipping", payload.TicketId);
+        return Results.Ok(new { handled = false, duplicate = true });
+    }
+
+    // The automation sends only the ticket id; read the rest from Freshdesk.
+    if (string.IsNullOrWhiteSpace(payload.Email) || payload.Subject is null)
+    {
+        var t = await freshdesk.GetTicketAsync(payload.TicketId);
+        if (t is null)
+        {
+            HandledTickets.Remove(payload.TicketId);
+            return Results.StatusCode(502);
+        }
+        payload.Subject ??= t.Value.Subject;
+        payload.Description ??= t.Value.Description;
+        if (string.IsNullOrWhiteSpace(payload.Email)) payload.Email = t.Value.Email;
+    }
+    if (string.IsNullOrWhiteSpace(payload.Email))
+        return Results.BadRequest(new { error = "ticket has no requester email" });
 
     var (intent, customer, decision) = await Analyze(
         payload.Subject, payload.Description, payload.Email, detector, data, engine, opts);
@@ -133,8 +233,10 @@ app.MapPost("/webhook/ticket", async (
 });
 
 // Called by the Freshservice sidebar app to render customer data + suggested steps.
+// ticketId is informational only; accepted as text so a blank value (customer lookup
+// from the CTI sidebar, which has no ticket) does not fail model binding.
 app.MapGet("/api/insights", async (
-    string email, long? ticketId, string? subject, string? description,
+    string email, string? ticketId, string? subject, string? description,
     IntentDetector detector, IUWorldDataService data, PolicyEngine engine, PolicyOptions opts) =>
 {
     if (string.IsNullOrWhiteSpace(email))
@@ -193,10 +295,16 @@ app.MapPost("/api/ticket/{id:long}/resolve", async (long id, FreshdeskClient fd)
 });
 
 // Customer 360 module: full user + subscriptions + payments data.
-app.MapGet("/api/customer/360", async (string email, IUWorld360DataService data) =>
+app.MapGet("/api/customer/360", async (string email, string? userId, IUWorld360DataService data) =>
 {
     if (string.IsNullOrWhiteSpace(email))
         return Results.BadRequest(new { error = "email is required" });
+
+    // Demo data: when the sidebar knows which user (shared email), return that user.
+    if (long.TryParse(userId, out var uid) && uid > 0 && app.Configuration.GetValue("UWorldDb:UseMockData", true)
+        && SampleDataStore.GetByUserId(uid) is { } named
+        && string.Equals(named.Email, email, StringComparison.OrdinalIgnoreCase))
+        return Results.Ok(named.Full);
 
     var c = await data.GetCustomer360Async(email);
     return c is null ? Results.NotFound(new { error = "customer not found" }) : Results.Ok(c);
@@ -249,3 +357,12 @@ app.MapGet("/api/samples", (
 });
 
 app.Run();
+
+// Tickets already auto-handled by the webhook in this process (guards against
+// Freshdesk webhook retries sending the same customer email twice).
+static class HandledTickets
+{
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<long, byte> Ids = new();
+    public static bool TryAdd(long id) => Ids.TryAdd(id, 0);
+    public static void Remove(long id) => Ids.TryRemove(id, out _);
+}

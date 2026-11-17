@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <div id="app" class="uw-cti">
+    <div class="uw-header">
+      <img class="uw-logo-img" src="styles/images/uworld-logo.png" alt="UWorld" />
+      <span class="uw-title">UWorld Customer Lookup</span>
+      <span class="uw-version">v2.8</span>
+    </div>
+
+    <form id="lookupForm" class="uw-card">
+      <label class="uw-label" for="email">Customer email</label>
+      <input id="email" class="uw-input" type="email" placeholder="customer@example.com" required />
+      <label class="uw-label" for="ask">What does the customer want? (optional)</label>
+      <textarea id="ask" class="uw-textarea" rows="3" placeholder="e.g. I want a refund"></textarea>
+      <div class="uw-btnrow">
+        <button id="btnLookup" type="submit" class="uw-btn uw-primary">Look up</button>
+      </div>
+    </form>
+
+    <div id="c-loading" class="uw-muted" style="display:none">Looking up customer…</div>
+    <div id="c-error" class="uw-error" style="display:none"></div>
+
+    <div id="c-result" style="display:none">
+      <div id="c-decision" class="uw-decision" style="display:none"></div>
+      <div id="c-user" class="uw-card"></div>
+      <div id="c-subs"></div>
+      <div id="c-pay"></div>
+    </div>
+  </div>
+  <script src="{{{appclient}}}"></script>
+  <script src="scripts/cti.js"></script>
+</body>
+</html>

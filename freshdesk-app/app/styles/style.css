@@ -82,3 +82,25 @@ body {
 .uw-actionmsg { margin-top: 10px; padding: 8px 10px; border-radius: 6px; font-size: 12px; }
 .uw-ok-msg { background: #e3f6ec; color: #1e8e5a; }
 .uw-err-msg { background: #fdecea; color: #b04632; }
+
+.uw-version { margin-left: auto; font-size: 11px; color: #8a94a6; }
+
+/* ── Large modal view (top-bar button) ───────────────────────────────────── */
+.uw-wide #app { max-width: none; padding: 4px 8px; }
+.uw-wide #content { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.uw-wide #content[style*="display: none"], .uw-wide #content[style*="display:none"] { display: none; }
+.uw-wide .uw-decision { font-size: 15px; }
+.uw-wide .uw-textarea { min-height: 180px; }
+@media (max-width: 720px) { .uw-wide #content { grid-template-columns: 1fr; } }
+.uw-topnav { padding: 12px; }
+.uw-logo-img { width: 26px; height: 26px; border-radius: 50%; }
+.uw-modal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.uw-close { padding: 4px 10px; font-size: 12px; }
+.uw-wide .uw-version { margin-left: 0; }
+.uw-wide .uw-header .uw-close { margin-left: auto; }
+.uw-cti { padding: 10px; }
+.uw-label { display: block; font-size: 12px; color: #475467; margin: 6px 0 4px; }
+.uw-input { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #d0d5dd; border-radius: 6px; font: inherit; }
+.uw-sub { border-top: 1px dashed #e3e8ef; padding-top: 6px; margin-top: 6px; }
+.uw-sub:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.uw-sub-title { font-weight: 600; margin-bottom: 4px; }

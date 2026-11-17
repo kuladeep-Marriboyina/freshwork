@@ -18,6 +18,7 @@ public enum PolicyAction
 
 public class CustomerProfile
 {
+    public long UserId { get; set; }
     public string Email { get; set; } = "";
     public string FullName { get; set; } = "";
     public string SubscriptionName { get; set; } = "";
@@ -29,6 +30,10 @@ public class CustomerProfile
     public int FailedLoginAttempts { get; set; }
     public bool HasDuplicateCharge { get; set; }
     public decimal AmountPaid { get; set; }
+
+    // False when no UWorld account matched the email (placeholder profile).
+    // Unknown customers are never auto-handled.
+    public bool IsKnown { get; set; } = true;
 
     public int DaysSincePurchase(DateOnly today) => today.DayNumber - PurchaseDate.DayNumber;
     public bool WithinRefundWindow(DateOnly today) => DaysSincePurchase(today) <= RefundWindowDays;

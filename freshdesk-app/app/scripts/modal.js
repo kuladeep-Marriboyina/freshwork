@@ -5,25 +5,23 @@ init();
 async function init() {
   try {
     client = await app.initialized();
+    wireClose();
     const ctx = await client.instance.context();
     const email = (ctx && ctx.data && ctx.data.email) || "";
+    const userId = (ctx && ctx.data && ctx.data.userId) || "";
     wireTabs();
-    await load(email);
+    await load(email, userId);
   } catch (e) {
     showError("Init failed: " + e.message);
   }
 }
 
-async function load(email) {
+async function load(email, userId) {
   try {
-    const iparams = await client.iparams.get();
-    const base = (iparams.backend_base_url || "").replace(/\/+$/, "");
-    const resp = await fetch(`${base}/api/customer/360?email=${encodeURIComponent(email)}`);
-    if (!resp.ok) throw new Error("Backend returned " + resp.status);
-    const data = await resp.json();
-    paint(data);
+    const resp = await client.request.invokeTemplate("getCustomer360", { context: { email: email, userId: userId || "" } });
+    paint(parseBody(resp));
   } catch (e) {
-    showError("Could not load records: " + e.message);
+    showError("Could not load records: " + (e && e.status ? "Backend returned " + e.status : (e && e.message) || "request failed"));
   }
 }
 
@@ -79,6 +77,12 @@ function paint(d) {
     : emptyCard("No payments on record.");
 }
 
+// Close this popup (Freshworks instance API).
+function wireClose() {
+  const btn = document.getElementById("btnClose");
+  if (btn) btn.onclick = () => client.instance.close();
+}
+
 function wireTabs() {
   const map = { user: "tab-user", subs: "tab-subs", pay: "tab-pay" };
   document.querySelectorAll(".uw-tab").forEach(btn => {
@@ -93,14 +97,27 @@ function wireTabs() {
 
 function row(k, v) {
   return `<div class="uw-row"><span class="uw-k">${esc(k)}</span>` +
-         `<span class="uw-v">${esc(v == null || v === "" ? "—" : String(v))}</span></div>`;
+         `<span class="uw-v">${esc(v === null || v === undefined || v === "" ? "—" : String(v))}</span></div>`;
 }
 function emptyCard(msg) { return `<div class="uw-card uw-muted">${esc(msg)}</div>`; }
 function badge(status) {
   const s = (status || "").toLowerCase();
   return s === "active" ? "uw-b-green" : s === "expired" ? "uw-b-red" : "uw-b-grey";
 }
-function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
+function esc(s) { const d = document.createElement("div"); d.textContent = (s === null || s === undefined) ? "" : String(s); return d.innerHTML; }
 function show(id) { document.getElementById(id).style.display = ""; }
 function hide(id) { document.getElementById(id).style.display = "none"; }
 function showError(m) { hide("m-loading"); const e = document.getElementById("m-error"); e.style.display = ""; e.textContent = m; }
+
+// Accept the request-template response in any shape the host returns
+// (see parseBody in app.js).
+function parseBody(resp) {
+  if (resp === null || resp === undefined) throw new Error("empty response from Freshworks proxy");
+  if (typeof resp === "string") return JSON.parse(resp);
+  const body = resp.response !== undefined ? resp.response
+    : resp.body !== undefined ? resp.body : resp.data;
+  if (body !== null && typeof body === "object") return body;
+  if (typeof body === "string" && body.trim()) return JSON.parse(body);
+  throw new Error("no data in response (status " + (resp.status === undefined ? "?" : resp.status) +
+    ", fields: " + (Object.keys(resp).join(",") || "none") + ")");
+}

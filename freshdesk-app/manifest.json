@@ -1,21 +1,40 @@
 {
-  "platform-version": "2.3",
-  "product": {
-    "freshservice": {
+  "platform-version": "3.0",
+  "modules": {
+    "common": {
+      "requests": {
+        "getInsights": {},
+        "getCustomer360": {},
+        "postReply": {},
+        "postNote": {},
+        "pingConfigured": {},
+        "pingFixedHost": {}
+      },
+      "location": {
+        "cti_global_sidebar": {
+          "url": "cti.html",
+          "icon": "icon.svg"
+        }
+      }
+    },
+    "support_ticket": {
       "location": {
         "ticket_sidebar": {
           "url": "template.html",
+          "icon": "icon.svg"
+        },
+        "ticket_top_navigation": {
+          "url": "topnav.html",
           "icon": "icon.svg"
         }
       }
     }
   },
-  "whitelisted-domains": [
-    "https://*.ngrok-free.app",
-    "https://*.ngrok.io"
-  ],
+  "scripts": {
+    "fdk-unit-test": "vitest run --coverage"
+  },
   "engines": {
-    "node": "18.20.4",
-    "fdk": "9.5.0"
+    "node": "24.22.3",
+    "fdk": "10.1.10"
   }
 }

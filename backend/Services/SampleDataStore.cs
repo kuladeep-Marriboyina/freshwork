@@ -23,12 +23,31 @@ public static class SampleDataStore
 
     // Lazy so these build AFTER all the static data arrays below are initialized.
     private static readonly Lazy<List<DemoCustomer>> _ordered = new(Build);
-    private static readonly Lazy<Dictionary<string, DemoCustomer>> _byEmail =
-        new(() => _ordered.Value.ToDictionary(c => c.Email, StringComparer.OrdinalIgnoreCase));
+    // Several demo users may share one email (e.g. the demo inbox), so index as a lookup.
+    private static readonly Lazy<ILookup<string, DemoCustomer>> _byEmail =
+        new(() => _ordered.Value.ToLookup(c => c.Email, StringComparer.OrdinalIgnoreCase));
 
     public static IReadOnlyList<DemoCustomer> All => _ordered.Value;
-    public static DemoCustomer? Get(string email) =>
-        _byEmail.Value.TryGetValue(email, out var c) ? c : null;
+
+    // Primary (first) user for an email.
+    public static DemoCustomer? Get(string email) => _byEmail.Value[email].FirstOrDefault();
+
+    public static IReadOnlyList<DemoCustomer> GetAllByEmail(string email) => _byEmail.Value[email].ToList();
+
+    public static DemoCustomer? GetByUserId(long userId) =>
+        _ordered.Value.FirstOrDefault(c => c.Full.User?.UserId == userId);
+
+    // When several users share the email, pick the one the ticket names — by UWorld
+    // user ID or full name — otherwise the primary user.
+    public static DemoCustomer? Resolve(string email, string? text)
+    {
+        var users = GetAllByEmail(email);
+        if (users.Count <= 1 || string.IsNullOrWhiteSpace(text)) return users.FirstOrDefault();
+        var t = text.ToLowerInvariant();
+        return users.FirstOrDefault(u => u.Full.User is { } a && a.UserId > 0 && t.Contains(a.UserId.ToString()))
+            ?? users.FirstOrDefault(u => u.Full.User is { } a && t.Contains(a.FullName.ToLowerInvariant()))
+            ?? users[0];
+    }
 
     // ── deterministic RNG (stable across runs; no Math.Random/Date) ──────────────
     private sealed class Rng
@@ -86,11 +105,20 @@ public static class SampleDataStore
         var list = new List<DemoCustomer>();
 
         // ── Seeded showcase customers (stable emails used elsewhere in the demo) ──
-        list.Add(Make(30002129792, "pushpabaivadithe522@gmail.com", "Pushpa Vadithe", "+91 90000 00000", "India",
-            Kind.RefundDeny, 5001, "USMLE Step 1 Qbank", 78, 35, 319m,
-            subjOverride: "Refund for subscription", descOverride: "I want refund for subscription xxxxx",
-            labelOverride: "Refund — used sub (real ticket #3)", memberDays: 400,
-            extra: (5002, "USMLE Step 2 Qbank", "Expired", 100, 420, 299m)));
+        list.Add(DemoAccount());
+        // ── Shared demo inbox: different people, same email (pushpabaivadithe522@gmail.com).
+        //    A ticket picks the person by naming them or their user ID. ──
+        const string Inbox = "pushpabaivadithe522@gmail.com";
+        list.Add(Make(9000001, Inbox, "Ravi Kumar",   "+91 90001 00001", "India", Kind.RefundApprove,       9101, "NCLEX Qbank",        3,  2, 199m, memberDays: 2,   labelOverride: "Ravi Kumar — refund, low usage (auto-approve)"));
+        list.Add(Make(9000002, Inbox, "Ananya Rao",   "+91 90001 00002", "India", Kind.RefundDeny,          9102, "USMLE Step 1 Qbank", 85, 40, 319m, memberDays: 300, labelOverride: "Ananya Rao — refund, heavily used (auto-deny)"));
+        list.Add(Make(9000003, Inbox, "Kiran Reddy",  "+91 90001 00003", "India", Kind.Duplicate,           9103, "USMLE Step 2 Qbank", 10,  1, 299m, memberDays: 40,  labelOverride: "Kiran Reddy — charged twice (auto-refund duplicate)"));
+        list.Add(Make(9000004, Inbox, "Meera Iyer",   "+91 90001 00004", "India", Kind.Locked,              9104, "MCAT Qbank",         40, 20, 429m, memberDays: 150, failed: 8, labelOverride: "Meera Iyer — account locked (auto-unlock)"));
+        list.Add(Make(9000005, Inbox, "Arjun Mehta",  "+91 90001 00005", "India", Kind.CancelPreActivation, 9105, "USMLE Step 3 Qbank",  0,  3, 279m, memberDays: 3,   labelOverride: "Arjun Mehta — cancel before activation (auto full refund)"));
+        list.Add(Make(9000006, Inbox, "Sneha Patel",  "+91 90001 00006", "India", Kind.RefundBorderline,    9106, "MCAT Qbank",         30, 12, 429m, memberDays: 20,  labelOverride: "Sneha Patel — borderline refund (agent review)"));
+        list.Add(Make(9000007, Inbox, "Vikram Das",   "+91 90001 00007", "India", Kind.PasswordReset,       9107, "USMLE Step 1 Qbank", 50, 90, 319m, memberDays: 500, labelOverride: "Vikram Das — password reset (auto temp password)"));
+        list.Add(Make(9000008, Inbox, "Lakshmi Nair", "+91 90001 00008", "India", Kind.AccessIssue,         9108, "NCLEX Qbank",        15,  5, 199m, memberDays: 10,  labelOverride: "Lakshmi Nair — activation issue (agent review)"));
+        list.Add(Make(9000009, Inbox, "Rahul Verma",  "+91 90001 00009", "India", Kind.BillingDispute,      9109, "CPA Review",         70, 45, 999m, memberDays: 365, labelOverride: "Rahul Verma — billing dispute (human only)"));
+
         list.Add(Make(40010, "used.customer@example.com", "Priya Nair", "+91 98888 00000", "India",
             Kind.RefundDeny, 7001, "USMLE Step 1 Qbank", 80, 40, 319m, memberDays: 200));
         list.Add(Make(40002, "fresh.customer@example.com", "Alex Morgan", "+1 212 555 0190", "USA",
@@ -142,6 +170,37 @@ public static class SampleDataStore
         return list;
     }
 
+    // pushpabaivadithe522@gmail.com — one real inbox holding every scenario. Each
+    // subscription is in a different state; the decision uses the subscription the
+    // ticket mentions (see SubscriptionSelector), the account itself is locked.
+    private static DemoCustomer DemoAccount()
+    {
+        var c = Make(30002129792, "pushpabaivadithe522@gmail.com", "Pushpa Vadithe", "+91 90000 00000", "India",
+            Kind.RefundDeny, 5001, "USMLE Step 1 Qbank", 78, 35, 319m,
+            subjOverride: "Refund for USMLE Step 1 Qbank", descOverride: "I want a refund for my USMLE Step 1 Qbank",
+            labelOverride: "Demo account — all scenarios (mention the product in the ticket)",
+            memberDays: 400, failed: 7);
+        const string card = "Visa •••• 4242";
+        void Add(long id, string name, string status, int usage, int daysAgo, decimal amount, bool activated, bool dup = false)
+        {
+            var purchase = Today.AddDays(-daysAgo);
+            c.Full.Subscriptions.Add(new SubscriptionRecord { SubscriptionId = id, Name = name, Status = status,
+                UsagePercent = usage, PurchaseDate = purchase, ExpiryDate = purchase.AddDays(365),
+                AmountPaid = amount, IsActivated = activated, AutoRenew = false });
+            c.Full.Payments.Add(new PaymentRecord { PaymentId = $"PAY-{id}", Date = purchase, Amount = amount,
+                Method = card, Status = "Succeeded", Description = name });
+            if (dup)
+                c.Full.Payments.Add(new PaymentRecord { PaymentId = $"PAY-{id}D", Date = purchase, Amount = amount,
+                    Method = card, Status = "Succeeded", Description = name + " (duplicate)", IsDuplicate = true });
+        }
+        Add(5002, "NCLEX Qbank",        "Active",  3,  2, 199m, activated: true);              // refund -> auto-approve
+        Add(5003, "MCAT Qbank",         "Active", 30, 12, 429m, activated: true);              // refund -> borderline review
+        Add(5004, "USMLE Step 2 Qbank", "Active", 10,  1, 299m, activated: true, dup: true);   // charged twice -> auto-refund duplicate
+        Add(5005, "USMLE Step 3 Qbank", "Pending", 0,  3, 279m, activated: false);             // cancel -> auto full refund
+        c.Full.User!.AccountStatus = "Locked";                                                 // account locked -> auto-unlock
+        return c;
+    }
+
     private static DemoCustomer Make(
         long userId, string email, string name, string phone, string country, Kind kind,
         long subId, string subName, int usage, int daysAgo, decimal amount,
@@ -152,6 +211,7 @@ public static class SampleDataStore
     {
         var (subj, desc, label) = ScenarioText[(int)kind];
         subj = subjOverride ?? subj; desc = descOverride ?? desc; label = labelOverride ?? label;
+        dup = dup || kind == Kind.Duplicate; // a duplicate-charge scenario always has the duplicate payment
 
         bool activated = activatedOverride ?? (kind != Kind.CancelPreActivation);
         string status = statusOverride ?? (kind == Kind.CancelPreActivation ? "Pending" : kind == Kind.Locked ? "Active" : "Active");
@@ -197,7 +257,7 @@ public static class SampleDataStore
 
         var profile = new CustomerProfile
         {
-            Email = email, FullName = name, SubscriptionName = subName, SubscriptionStatus = status,
+            UserId = userId, Email = email, FullName = name, SubscriptionName = subName, SubscriptionStatus = status,
             UsagePercent = usage, PurchaseDate = purchase, RefundWindowDays = 14,
             IsActivated = activated, FailedLoginAttempts = failed, HasDuplicateCharge = dup, AmountPaid = amount
         };

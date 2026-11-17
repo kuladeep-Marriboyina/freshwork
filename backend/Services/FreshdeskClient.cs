@@ -50,6 +50,25 @@ public class FreshdeskClient
         return resp.IsSuccessStatusCode;
     }
 
+    // Reads subject, plain-text description and requester email for a ticket, so the
+    // automation webhook only needs to send the ticket id (no JSON-escaping issues).
+    public async Task<(string? Subject, string? Description, string? Email)?> GetTicketAsync(long ticketId)
+    {
+        var resp = await _http.GetAsync($"tickets/{ticketId}?include=requester");
+        if (!resp.IsSuccessStatusCode)
+        {
+            await LogIfFailed(resp, $"read ticket {ticketId}");
+            return null;
+        }
+        using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+        var root = doc.RootElement;
+        string? Str(JsonElement e, string name) =>
+            e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+        var email = root.TryGetProperty("requester", out var req) && req.ValueKind == JsonValueKind.Object
+            ? Str(req, "email") : null;
+        return (Str(root, "subject"), Str(root, "description_text"), email);
+    }
+
     private static StringContent JsonContent(object o) =>
         new(JsonSerializer.Serialize(o), Encoding.UTF8, "application/json");
 

@@ -12,3 +12,9 @@ freshdesk-app/dist/
 
 # Secrets
 appsettings.*.Local.json
+
+# FDK local runtime files
+freshdesk-app/log/
+freshdesk-app/.report.json
+backend/.fdk/
+backend/log/

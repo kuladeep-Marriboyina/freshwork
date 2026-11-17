@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/crayons/css/crayons-min.css" />
+</head>
+<body data-mode="modal" class="uw-wide">
+  <div id="app">
+    <div class="uw-header">
+      <img class="uw-logo-img" src="styles/images/uworld-logo.png" alt="UWorld" />
+      <span class="uw-title">UWorld Copilot</span>
+      <span class="uw-version">v2.8</span>
+      <button id="btnClose" class="uw-btn uw-ghost uw-close" title="Close">✕ Close</button>
+    </div>
+
+    <div id="loading" class="uw-muted">Loading customer insights…</div>
+    <div id="error" class="uw-error" style="display:none"></div>
+
+    <div id="content" style="display:none">
+      <div class="uw-col uw-col-left">
+      <!-- Decision banner -->
+      <div id="decision" class="uw-decision"></div>
+
+      <!-- Customer profile -->
+      <div class="uw-card">
+        <div class="uw-card-title">Customer (UWorld DB)</div>
+        <div id="profile" class="uw-kv"></div>
+        <button id="view360" class="uw-360-btn">📊 View full records (Customer 360)</button>
+      </div>
+
+      <!-- Customer 360 (inline: a modal cannot open another modal) -->
+      <div id="c360-card" class="uw-card" style="display:none">
+        <div class="uw-card-title">Customer 360</div>
+        <div class="uw-tabs">
+          <button class="uw-tab c360-tab active" data-pane="c360-user">User</button>
+          <button class="uw-tab c360-tab" data-pane="c360-subs">Subscriptions</button>
+          <button class="uw-tab c360-tab" data-pane="c360-pay">Payments</button>
+        </div>
+        <div id="c360-msg" class="uw-muted" style="display:none"></div>
+        <div id="c360-user" class="c360-pane"></div>
+        <div id="c360-subs" class="c360-pane" style="display:none"></div>
+        <div id="c360-pay" class="c360-pane" style="display:none"></div>
+      </div>
+
+      <!-- Suggested steps -->
+      <div id="steps-card" class="uw-card" style="display:none">
+        <div class="uw-card-title">Suggested steps</div>
+        <ol id="steps" class="uw-steps"></ol>
+      </div>
+
+      </div>
+      <div class="uw-col uw-col-right">
+      <!-- Actions: reply / note -->
+      <div class="uw-card">
+        <div class="uw-card-title">Reply to customer</div>
+        <textarea id="replyBox" class="uw-textarea" rows="7"></textarea>
+        <div class="uw-btnrow">
+          <button id="btnInsert" class="uw-btn uw-ghost">Insert into editor</button>
+          <button id="btnSend" class="uw-btn uw-primary">Send reply</button>
+        </div>
+        <label class="uw-check"><input type="checkbox" id="resolveToo" /> Resolve ticket after sending</label>
+      </div>
+
+      <div class="uw-card">
+        <div class="uw-card-title">Private note (internal)</div>
+        <textarea id="noteBox" class="uw-textarea" rows="4" placeholder="Internal note for the team…"></textarea>
+        <div class="uw-btnrow">
+          <button id="btnNote" class="uw-btn uw-ghost">Add private note</button>
+        </div>
+      </div>
+
+      <div id="actionMsg" class="uw-actionmsg" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{{appclient}}}"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

@@ -6,6 +6,11 @@
   <link rel="stylesheet" href="styles/style.css" />
 </head>
 <body class="uw-modal-body">
+  <div class="uw-modal-top">
+    <span class="uw-title">UWorld Customer 360</span>
+    <button id="btnClose" class="uw-btn uw-ghost uw-close" title="Close">✕ Close</button>
+  </div>
+
   <div class="uw-tabs">
     <button class="uw-tab active" data-tab="user">User</button>
     <button class="uw-tab" data-tab="subs">Subscriptions</button>
@@ -19,7 +24,7 @@
   <div id="tab-subs" class="uw-tabpane" style="display:none"></div>
   <div id="tab-pay" class="uw-tabpane" style="display:none"></div>
 
-  <script src="https://static.freshdev.io/fdk/2.0/assets/fresh_client.js"></script>
+  <script src="{{{appclient}}}"></script>
   <script src="scripts/modal.js"></script>
 </body>
 </html>

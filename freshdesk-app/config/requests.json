@@ -1,0 +1,81 @@
+{
+  "getInsights": {
+    "schema": {
+      "method": "GET",
+      "host": "<%= iparam.backend_host %>",
+      "path": "/api/insights",
+      "headers": {
+        "Accept": "application/json",
+        "X-Copilot-Key": "<%= iparam.api_secret %>",
+        "X-Tunnel-Skip-AntiPhishing-Page": "true"
+      },
+      "query": {
+        "email": "<%= context.email %>",
+        "ticketId": "<%= context.ticketId %>",
+        "subject": "<%= context.subject %>",
+        "description": "<%= context.description %>",
+        "appVersion": "2.8"
+      }
+    }
+  },
+  "getCustomer360": {
+    "schema": {
+      "method": "GET",
+      "host": "<%= iparam.backend_host %>",
+      "path": "/api/customer/360",
+      "headers": {
+        "Accept": "application/json",
+        "X-Copilot-Key": "<%= iparam.api_secret %>",
+        "X-Tunnel-Skip-AntiPhishing-Page": "true"
+      },
+      "query": {
+        "email": "<%= context.email %>",
+        "userId": "<%= context.userId %>"
+      }
+    }
+  },
+  "postReply": {
+    "schema": {
+      "method": "POST",
+      "host": "<%= iparam.backend_host %>",
+      "path": "/api/ticket/<%= context.ticketId %>/reply",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-Copilot-Key": "<%= iparam.api_secret %>",
+        "X-Tunnel-Skip-AntiPhishing-Page": "true"
+      }
+    }
+  },
+  "postNote": {
+    "schema": {
+      "method": "POST",
+      "host": "<%= iparam.backend_host %>",
+      "path": "/api/ticket/<%= context.ticketId %>/note",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-Copilot-Key": "<%= iparam.api_secret %>",
+        "X-Tunnel-Skip-AntiPhishing-Page": "true"
+      }
+    }
+  },
+  "pingConfigured": {
+    "schema": {
+      "method": "GET",
+      "host": "<%= iparam.backend_host %>",
+      "path": "/health",
+      "headers": {
+        "X-Tunnel-Skip-AntiPhishing-Page": "true"
+      }
+    }
+  },
+  "pingFixedHost": {
+    "schema": {
+      "method": "GET",
+      "host": "039np9f4-5090.usw3.devtunnels.ms",
+      "path": "/health",
+      "headers": {
+        "X-Tunnel-Skip-AntiPhishing-Page": "true"
+      }
+    }
+  }
+}
