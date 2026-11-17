@@ -1,0 +1,84 @@
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px; color: #2c3e50; margin: 0; padding: 10px;
+}
+
+.uw-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.uw-logo {
+  background: #0a66c2; color: #fff; font-weight: 700; font-size: 11px;
+  width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+}
+.uw-title { font-weight: 600; font-size: 14px; }
+
+.uw-muted { color: #8a94a6; padding: 12px 0; }
+.uw-error { color: #c0392b; background: #fdecea; border: 1px solid #f5c6cb; border-radius: 6px; padding: 10px; }
+
+.uw-decision { border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; color: #fff; }
+.uw-decision-label { font-weight: 700; font-size: 14px; }
+.uw-decision-sub { font-size: 12px; opacity: 0.95; margin-top: 2px; }
+.uw-decision-reason { font-size: 12px; margin-top: 6px; opacity: 0.95; }
+.uw-decision-note { font-size: 11px; margin-top: 6px; font-style: italic; opacity: 0.9; }
+
+.uw-auto   { background: #1e8e5a; }
+.uw-deny   { background: #b04632; }
+.uw-review { background: #c7891f; }
+
+.uw-card { border: 1px solid #e3e8ef; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+.uw-card-title { font-weight: 600; margin-bottom: 8px; color: #334155; }
+
+.uw-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #eef1f5; }
+.uw-row:last-child { border-bottom: none; }
+.uw-k { color: #64748b; }
+.uw-v { font-weight: 600; text-align: right; }
+
+.uw-steps { margin: 0; padding-left: 18px; }
+.uw-steps li { margin-bottom: 8px; line-height: 1.4; }
+.uw-copy {
+  margin-left: 6px; font-size: 11px; border: 1px solid #0a66c2; color: #0a66c2;
+  background: #fff; border-radius: 4px; padding: 1px 6px; cursor: pointer;
+}
+.uw-copy:hover { background: #0a66c2; color: #fff; }
+
+/* Customer 360 button */
+.uw-360-btn {
+  margin-top: 10px; width: 100%; background: #0a66c2; color: #fff; border: none;
+  border-radius: 6px; padding: 8px; font-size: 13px; cursor: pointer; font-weight: 600;
+}
+.uw-360-btn:hover { background: #084e95; }
+
+/* Modal: tabs */
+.uw-modal-body { padding: 14px; }
+.uw-tabs { display: flex; gap: 6px; border-bottom: 1px solid #e3e8ef; margin-bottom: 12px; }
+.uw-tab {
+  background: none; border: none; padding: 8px 12px; cursor: pointer; font-size: 13px;
+  color: #64748b; border-bottom: 2px solid transparent;
+}
+.uw-tab.active { color: #0a66c2; border-bottom-color: #0a66c2; font-weight: 600; }
+
+.uw-summary { display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; }
+
+/* Badges */
+.uw-badge { font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+.uw-b-green { background: #e3f6ec; color: #1e8e5a; }
+.uw-b-red { background: #fdecea; color: #b04632; }
+.uw-b-grey { background: #eef1f5; color: #64748b; }
+
+/* Payments table */
+.uw-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.uw-table th, .uw-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eef1f5; }
+.uw-table th { color: #64748b; font-weight: 600; }
+.uw-dup { background: #fff7f5; }
+
+/* Actions: reply + note */
+.uw-textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; font-size: 12px; font-family: inherit; resize: vertical; }
+.uw-btnrow { display: flex; gap: 8px; margin-top: 8px; }
+.uw-btn { border-radius: 6px; padding: 7px 12px; font-size: 12px; cursor: pointer; font-weight: 600; border: 1px solid #0a66c2; }
+.uw-primary { background: #0a66c2; color: #fff; }
+.uw-primary:hover { background: #084e95; }
+.uw-ghost { background: #fff; color: #0a66c2; }
+.uw-ghost:hover { background: #eef5fc; }
+.uw-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #475569; margin-top: 8px; }
+.uw-actionmsg { margin-top: 10px; padding: 8px 10px; border-radius: 6px; font-size: 12px; }
+.uw-ok-msg { background: #e3f6ec; color: #1e8e5a; }
+.uw-err-msg { background: #fdecea; color: #b04632; }

@@ -1,0 +1,9 @@
+{
+  "backend_base_url": {
+    "display_name": "UWorld Copilot backend base URL",
+    "description": "Public base URL of the backend (e.g. your ngrok URL). No trailing slash.",
+    "type": "text",
+    "required": true,
+    "default_value": "https://YOUR-NGROK-SUBDOMAIN.ngrok-free.app"
+  }
+}

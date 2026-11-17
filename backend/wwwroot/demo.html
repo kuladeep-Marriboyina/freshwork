@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UWorld Copilot — Demo UI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; background: #f4f6fa; color: #2c3e50; }
+    .topbar { background: #0a66c2; color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+    .topbar .logo { background: #fff; color: #0a66c2; font-weight: 700; width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .topbar h1 { font-size: 17px; margin: 0; font-weight: 600; flex: 1; }
+    .wrap { max-width: 1050px; margin: 20px auto; padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .controls { grid-column: 1 / -1; background: #fff; border: 1px solid #e3e8ef; border-radius: 10px; padding: 14px 16px; }
+    .controls label { font-size: 12px; color: #64748b; display: block; margin-bottom: 4px; }
+    .controls input, .controls select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 100%; }
+    .row3 { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; align-items: end; }
+    button.go { background: #0a66c2; color: #fff; border: none; border-radius: 6px; padding: 9px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    button.go:hover { background: #084e95; }
+    .panel { background: #fff; border: 1px solid #e3e8ef; border-radius: 10px; padding: 16px; }
+    .panel h2 { font-size: 14px; margin: 0 0 12px; color: #334155; }
+    .decision { border-radius: 8px; padding: 12px; color: #fff; margin-bottom: 12px; }
+    .decision .lbl { font-weight: 700; font-size: 15px; }
+    .decision .sub { font-size: 12px; opacity: .95; margin-top: 3px; }
+    .decision .rsn { font-size: 12px; margin-top: 7px; opacity: .95; }
+    .auto { background: #1e8e5a; } .deny { background: #b04632; } .review { background: #c7891f; }
+    .kv { border-top: 1px solid #eef1f5; }
+    .kv .r { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eef1f5; font-size: 13px; }
+    .kv .k { color: #64748b; } .kv .v { font-weight: 600; }
+    ol.steps { margin: 8px 0 0; padding-left: 18px; } ol.steps li { margin-bottom: 7px; font-size: 13px; }
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid #e3e8ef; margin-bottom: 12px; }
+    .tab { background: none; border: none; padding: 8px 12px; cursor: pointer; font-size: 13px; color: #64748b; border-bottom: 2px solid transparent; }
+    .tab.active { color: #0a66c2; border-bottom-color: #0a66c2; font-weight: 600; }
+    .card { border: 1px solid #e3e8ef; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+    .card .t { font-weight: 600; margin-bottom: 7px; }
+    .badge { font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; }
+    .b-green { background: #e3f6ec; color: #1e8e5a; } .b-red { background: #fdecea; color: #b04632; } .b-grey { background: #eef1f5; color: #64748b; }
+    table.pay { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.pay th, table.pay td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eef1f5; }
+    table.pay th { color: #64748b; }
+    tr.dup { background: #fff7f5; }
+    .summary { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; }
+    .muted { color: #8a94a6; }
+    .err { color: #c0392b; background: #fdecea; border: 1px solid #f5c6cb; border-radius: 6px; padding: 10px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="topbar"><span class="logo">UW</span><h1>UWorld Copilot — Demo UI</h1>
+    <a href="/users.html" style="color:#fff;font-size:13px;text-decoration:none;border:1px solid rgba(255,255,255,.5);padding:6px 10px;border-radius:6px;">👥 All sample users</a>
+  </div>
+
+  <div class="wrap">
+    <div class="controls">
+      <div class="row3">
+        <div>
+          <label>Customer email (pick a sample or type one)</label>
+          <input id="email" list="samples" value="pushpabaivadithe522@gmail.com" />
+          <datalist id="samples">
+            <option value="pushpabaivadithe522@gmail.com">Pushpa (refund, used sub → deny)</option>
+            <option value="fresh.customer@example.com">Alex (low usage)</option>
+            <option value="borderline.customer@example.com">Sam (borderline refund)</option>
+            <option value="duplicate.customer@example.com">Taylor (duplicate charge)</option>
+            <option value="locked.customer@example.com">Jordan (account locked)</option>
+            <option value="notactivated.customer@example.com">Robin (cancel pre-activation)</option>
+          </datalist>
+        </div>
+        <div>
+          <label>Ticket text (subject + message)</label>
+          <input id="text" value="I want refund for subscription xxxxx" />
+        </div>
+        <div><button class="go" onclick="analyze()">Analyze</button></div>
+      </div>
+    </div>
+
+    <!-- LEFT: agent-assist sidebar view -->
+    <div class="panel">
+      <h2>🤖 Copilot decision (ticket sidebar)</h2>
+      <div id="sidebar" class="muted">Click Analyze to see the decision.</div>
+    </div>
+
+    <!-- RIGHT: Customer 360 module -->
+    <div class="panel">
+      <h2>📊 Customer 360</h2>
+      <div class="tabs">
+        <button class="tab active" data-t="user" onclick="tab('user')">User</button>
+        <button class="tab" data-t="subs" onclick="tab('subs')">Subscriptions</button>
+        <button class="tab" data-t="pay" onclick="tab('pay')">Payments</button>
+      </div>
+      <div id="c360" class="muted">Click Analyze to load records.</div>
+    </div>
+  </div>
+
+  <script>
+    const base = ""; // same origin
+    let current = { user: "", subs: "", pay: "" };
+
+    async function analyze() {
+      const email = document.getElementById("email").value.trim();
+      const text = document.getElementById("text").value.trim();
+      await Promise.all([loadSidebar(email, text), load360(email)]);
+    }
+
+    async function loadSidebar(email, text) {
+      const el = document.getElementById("sidebar");
+      el.innerHTML = '<span class="muted">Loading…</span>';
+      try {
+        const qs = new URLSearchParams({ email, subject: text, description: text });
+        const d = await (await fetch(`${base}/api/insights?${qs}`)).json();
+        const key = ["AutoResolve","AutoApprove","AutoDeny","AgentReview"][d.recommendedAction] || "AgentReview";
+        const meta = {
+          AutoResolve: ["Auto-resolved","auto"], AutoApprove: ["Auto-approved","auto"],
+          AutoDeny: ["Auto-denied (policy)","deny"], AgentReview: ["Needs review","review"]
+        }[key];
+        const c = d.customer || {};
+        const steps = (d.suggestedSteps||[]).sort((a,b)=>a.order-b.order)
+          .map(s=>`<li>${esc(s.text)}</li>`).join("");
+        el.innerHTML = `
+          <div class="decision ${meta[1]}">
+            <div class="lbl">${meta[0]}</div>
+            <div class="sub">Intent: <b>${esc(d.intent)}</b> · Confidence: <b>${Math.round((d.confidence||0)*100)}%</b> · Auto-send: <b>${d.wasAutoHandled?"YES":"no"}</b></div>
+            <div class="rsn">${esc(d.reason||"")}</div>
+          </div>
+          <div class="kv">
+            ${rowkv("Name", c.fullName)}${rowkv("Email", c.email)}
+            ${rowkv("Subscription", c.subscriptionName)}${rowkv("Status", c.subscriptionStatus)}
+            ${rowkv("Usage", (c.usagePercent??0)+"%")}${rowkv("Purchased", c.purchaseDate)}
+            ${rowkv("Refund window", (c.refundWindowDays??0)+" days")}${rowkv("Amount paid", "$"+Number(c.amountPaid||0).toFixed(2))}
+          </div>
+          ${steps ? `<h2 style="margin-top:14px">Suggested steps</h2><ol class="steps">${steps}</ol>` : ""}`;
+      } catch (e) { el.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    }
+
+    async function load360(email) {
+      const el = document.getElementById("c360");
+      el.innerHTML = '<span class="muted">Loading…</span>';
+      try {
+        const d = await (await fetch(`${base}/api/customer/360?email=${encodeURIComponent(email)}`)).json();
+        const u = d.user || {};
+        current.user = `
+          <div class="card">
+            <div class="t">User account</div>
+            ${rowkv("Name",u.fullName)}${rowkv("Email",u.email)}${rowkv("User ID",u.userId)}
+            ${rowkv("Phone",u.phone)}${rowkv("Country",u.country)}${rowkv("Status",u.accountStatus)}
+            ${rowkv("Member since",u.memberSince)}${rowkv("Failed logins",u.failedLoginAttempts)}
+          </div>
+          <div class="summary"><span>Active subs: <b>${d.activeSubscriptions??0}</b></span><span>Total paid: <b>$${Number(d.totalPaid||0).toFixed(2)}</b></span></div>`;
+        current.subs = (d.subscriptions||[]).length ? (d.subscriptions||[]).map(s=>`
+          <div class="card"><div class="t">${esc(s.name)} <span class="badge ${badge(s.status)}">${esc(s.status)}</span></div>
+          ${rowkv("Usage",(s.usagePercent??0)+"%")}${rowkv("Purchased",s.purchaseDate)}${rowkv("Expires",s.expiryDate)}
+          ${rowkv("Amount","$"+Number(s.amountPaid||0).toFixed(2))}${rowkv("Activated",s.isActivated?"Yes":"No")}${rowkv("Auto-renew",s.autoRenew?"On":"Off")}</div>`).join("")
+          : `<div class="card muted">No subscriptions.</div>`;
+        current.pay = (d.payments||[]).length ? `<div class="card"><div class="t">Payment history</div>
+          <table class="pay"><thead><tr><th>Date</th><th>Ref</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead><tbody>
+          ${(d.payments||[]).map(p=>`<tr class="${p.isDuplicate?"dup":""}"><td>${esc(p.date)}</td><td>${esc(p.paymentId)}${p.isDuplicate?' <span class="badge b-red">dup</span>':""}</td><td>$${Number(p.amount||0).toFixed(2)}</td><td>${esc(p.method)}</td><td>${esc(p.status)}</td></tr>`).join("")}
+          </tbody></table></div>` : `<div class="card muted">No payments.</div>`;
+        tab(document.querySelector(".tab.active").dataset.t);
+      } catch (e) { el.innerHTML = `<div class="err">${esc(e.message)}</div>`; }
+    }
+
+    function tab(name) {
+      document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active", b.dataset.t===name));
+      document.getElementById("c360").innerHTML = current[name] || '<span class="muted">Click Analyze to load records.</span>';
+    }
+    function rowkv(k,v){ return `<div class="r"><span class="k">${esc(k)}</span><span class="v">${esc(v==null||v===""?"—":v)}</span></div>`; }
+    function badge(s){ s=(s||"").toLowerCase(); return s==="active"?"b-green":s==="expired"?"b-red":"b-grey"; }
+    function esc(s){ const d=document.createElement("div"); d.textContent=s==null?"":String(s); return d.innerHTML; }
+
+    (function initFromQuery() {
+      const q = new URLSearchParams(location.search);
+      if (q.get("email")) document.getElementById("email").value = q.get("email");
+      if (q.get("text")) document.getElementById("text").value = q.get("text");
+    })();
+    analyze();
+  </script>
+</body>
+</html>

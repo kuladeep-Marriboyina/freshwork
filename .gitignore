@@ -1,0 +1,14 @@
+# .NET
+backend/bin/
+backend/obj/
+*.user
+run.log
+
+# FDK
+freshdesk-app/.fdk/
+freshdesk-app/node_modules/
+freshdesk-app/coverage/
+freshdesk-app/dist/
+
+# Secrets
+appsettings.*.Local.json

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/crayons/css/crayons-min.css" />
+</head>
+<body>
+  <div id="app">
+    <div class="uw-header">
+      <span class="uw-logo">UW</span>
+      <span class="uw-title">UWorld Copilot</span>
+    </div>
+
+    <div id="loading" class="uw-muted">Loading customer insights…</div>
+    <div id="error" class="uw-error" style="display:none"></div>
+
+    <div id="content" style="display:none">
+      <!-- Decision banner -->
+      <div id="decision" class="uw-decision"></div>
+
+      <!-- Customer profile -->
+      <div class="uw-card">
+        <div class="uw-card-title">Customer (UWorld DB)</div>
+        <div id="profile" class="uw-kv"></div>
+        <button id="view360" class="uw-360-btn">📊 View full records (Customer 360)</button>
+      </div>
+
+      <!-- Suggested steps -->
+      <div id="steps-card" class="uw-card" style="display:none">
+        <div class="uw-card-title">Suggested steps</div>
+        <ol id="steps" class="uw-steps"></ol>
+      </div>
+
+      <!-- Actions: reply / note from the sidebar -->
+      <div class="uw-card">
+        <div class="uw-card-title">Reply to customer</div>
+        <textarea id="replyBox" class="uw-textarea" rows="7"></textarea>
+        <div class="uw-btnrow">
+          <button id="btnInsert" class="uw-btn uw-ghost">Insert into editor</button>
+          <button id="btnSend" class="uw-btn uw-primary">Send reply</button>
+        </div>
+        <label class="uw-check"><input type="checkbox" id="resolveToo" /> Resolve ticket after sending</label>
+      </div>
+
+      <div class="uw-card">
+        <div class="uw-card-title">Private note (internal)</div>
+        <textarea id="noteBox" class="uw-textarea" rows="4" placeholder="Internal note for the team…"></textarea>
+        <div class="uw-btnrow">
+          <button id="btnNote" class="uw-btn uw-ghost">Add private note</button>
+        </div>
+      </div>
+
+      <div id="actionMsg" class="uw-actionmsg" style="display:none"></div>
+    </div>
+  </div>
+
+  <script src="https://static.freshdev.io/fdk/2.0/assets/fresh_client.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

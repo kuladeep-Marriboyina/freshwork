@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UWorld Copilot — Sample Users</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; background: #f4f6fa; color: #2c3e50; }
+    .topbar { background: #0a66c2; color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+    .topbar .logo { background: #fff; color: #0a66c2; font-weight: 700; width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+    .topbar h1 { font-size: 17px; margin: 0; font-weight: 600; flex: 1; }
+    .topbar a { color: #fff; font-size: 13px; text-decoration: none; border: 1px solid rgba(255,255,255,.5); padding: 6px 10px; border-radius: 6px; }
+    .wrap { max-width: 1250px; margin: 20px auto; padding: 0 16px; }
+    .intro { color: #475569; font-size: 14px; margin-bottom: 14px; }
+    .searchbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .searchbar input { flex: 1; max-width: 480px; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
+    .pager { display: flex; justify-content: center; align-items: center; gap: 14px; margin: 20px 0; }
+    .pager button { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+    .pager button:disabled { opacity: .45; cursor: default; }
+    .pager .pginfo { font-size: 13px; color: #475569; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+    .uc { background: #fff; border: 1px solid #e3e8ef; border-radius: 10px; padding: 14px; }
+    .uc .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .uc .name { font-weight: 700; font-size: 15px; }
+    .uc .email { color: #64748b; font-size: 12px; }
+    .uc .label { color: #334155; font-size: 12px; font-style: italic; margin-top: 2px; }
+    .action { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 14px; white-space: nowrap; }
+    .AutoResolve, .AutoApprove { background: #e3f6ec; color: #1e8e5a; }
+    .AutoDeny { background: #fdecea; color: #b04632; }
+    .AgentReview { background: #fdf3e0; color: #b4791a; }
+    .meta { font-size: 12px; color: #475569; margin-top: 6px; }
+    .reason { font-size: 12px; color: #334155; background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 6px 8px; margin-top: 8px; border-radius: 0 4px 4px 0; }
+    .section { margin-top: 10px; }
+    .section h4 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; }
+    table.mini { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.mini th, table.mini td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #eef1f5; }
+    table.mini th { color: #64748b; font-weight: 600; }
+    .badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; }
+    .b-green { background: #e3f6ec; color: #1e8e5a; } .b-red { background: #fdecea; color: #b04632; } .b-grey { background: #eef1f5; color: #64748b; }
+    tr.dup td { background: #fff7f5; }
+    .foot { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #475569; }
+    .open { font-size: 12px; color: #0a66c2; text-decoration: none; }
+    .muted { color: #8a94a6; } .err { color: #c0392b; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="logo">UW</span><h1>UWorld Copilot — All Sample Users</h1>
+    <a href="/demo.html">↩ Analyzer</a>
+  </div>
+  <div class="wrap">
+    <div class="intro">Every demo customer with their user, subscription and payment data, plus the copilot's expected decision — use this to validate suggestions live.</div>
+    <div class="searchbar">
+      <input id="q" placeholder="🔍 Search by email, name, or user ID…" oninput="onSearch()" />
+      <span id="count" class="muted"></span>
+    </div>
+    <div id="cards" class="cards"><span class="muted">Loading sample users…</span></div>
+    <div id="pager" class="pager"></div>
+  </div>
+
+  <script>
+    let state = { q: "", page: 1, pageSize: 24, totalPages: 1 };
+    let timer = null;
+
+    load();
+
+    function onSearch() {
+      clearTimeout(timer);
+      timer = setTimeout(() => { state.q = document.getElementById("q").value.trim(); state.page = 1; load(); }, 250);
+    }
+    function goto(p) { state.page = p; load(); window.scrollTo(0, 0); }
+
+    async function load() {
+      const host = document.getElementById("cards");
+      host.innerHTML = '<span class="muted">Loading…</span>';
+      try {
+        const qs = new URLSearchParams({ q: state.q, page: state.page, pageSize: state.pageSize });
+        const res = await (await fetch(`/api/samples?${qs}`)).json();
+        state.totalPages = res.totalPages || 1;
+        document.getElementById("count").textContent =
+          `${res.total} user${res.total === 1 ? "" : "s"}${state.q ? ` matching "${state.q}"` : ""}`;
+        host.innerHTML = res.items.length ? res.items.map(card).join("") : '<span class="muted">No users match your search.</span>';
+        renderPager(res.page, res.totalPages);
+      } catch (e) { host.innerHTML = `<span class="err">Failed to load: ${esc(e.message)}</span>`; }
+    }
+
+    function renderPager(page, totalPages) {
+      const p = document.getElementById("pager");
+      if (totalPages <= 1) { p.innerHTML = ""; return; }
+      let html = `<button ${page <= 1 ? "disabled" : ""} onclick="goto(${page - 1})">‹ Prev</button>`;
+      html += `<span class="pginfo">Page ${page} of ${totalPages}</span>`;
+      html += `<button ${page >= totalPages ? "disabled" : ""} onclick="goto(${page + 1})">Next ›</button>`;
+      p.innerHTML = html;
+    }
+
+    function card(x) {
+      const u = x.user || {};
+      const subs = (x.subscriptions||[]).map(s=>`
+        <tr><td>${esc(s.name)} <span class="badge ${badge(s.status)}">${esc(s.status)}</span></td>
+        <td>${s.usagePercent}%</td><td>${esc(s.purchaseDate)}</td><td>$${Number(s.amountPaid||0).toFixed(0)}</td></tr>`).join("");
+      const pays = (x.payments||[]).map(p=>`
+        <tr class="${p.isDuplicate?"dup":""}"><td>${esc(p.paymentId)}${p.isDuplicate?' <span class="badge b-red">dup</span>':""}</td>
+        <td>${esc(p.date)}</td><td>$${Number(p.amount||0).toFixed(0)}</td><td>${esc(p.method)}</td></tr>`).join("");
+      return `<div class="uc">
+        <div class="head">
+          <div>
+            <div class="name">${esc(u.fullName)}</div>
+            <div class="email">${esc(u.email)} · ${esc(u.country)} · ${esc(u.accountStatus)}</div>
+            <div class="label">${esc(x.label)}</div>
+          </div>
+          <span class="action ${esc(x.expectedAction)}">${esc(x.expectedAction)}${x.autoSend?" ⚡":""}</span>
+        </div>
+        <div class="meta">Intent: <b>${esc(x.intent)}</b> · Confidence: <b>${Math.round((x.confidence||0)*100)}%</b> · Demo text: "${esc(x.demoText)}"</div>
+        <div class="reason">${esc(x.reason)}</div>
+        <div class="section"><h4>Subscriptions</h4>
+          <table class="mini"><thead><tr><th>Name</th><th>Usage</th><th>Purchased</th><th>Paid</th></tr></thead><tbody>${subs||'<tr><td class="muted">none</td></tr>'}</tbody></table></div>
+        <div class="section"><h4>Payments</h4>
+          <table class="mini"><thead><tr><th>Ref</th><th>Date</th><th>Amount</th><th>Method</th></tr></thead><tbody>${pays||'<tr><td class="muted">none</td></tr>'}</tbody></table></div>
+        <div class="foot">
+          <span>Active subs: <b>${x.activeSubscriptions}</b> · Total paid: <b>$${Number(x.totalPaid||0).toFixed(0)}</b></span>
+          <a class="open" href="/demo.html?email=${encodeURIComponent(u.email)}&text=${encodeURIComponent(x.demoText)}">Open in analyzer →</a>
+        </div>
+      </div>`;
+    }
+    function badge(s){ s=(s||"").toLowerCase(); return s==="active"?"b-green":s==="expired"||s==="pending"?"b-red":"b-grey"; }
+    function esc(s){ const d=document.createElement("div"); d.textContent=s==null?"":String(s); return d.innerHTML; }
+  </script>
+</body>
+</html>
