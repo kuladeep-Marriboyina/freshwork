@@ -14,7 +14,7 @@ body {
 .uw-muted { color: #8a94a6; padding: 12px 0; }
 .uw-error { color: #c0392b; background: #fdecea; border: 1px solid #f5c6cb; border-radius: 6px; padding: 10px; }
 
-.uw-decision { border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; color: #fff; }
+.uw-decision { border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; color: #fff; }
 .uw-decision-label { font-weight: 700; font-size: 14px; }
 .uw-decision-sub { font-size: 12px; opacity: 0.95; margin-top: 2px; }
 .uw-decision-reason { font-size: 12px; margin-top: 6px; opacity: 0.95; }
@@ -24,10 +24,12 @@ body {
 .uw-deny   { background: #b04632; }
 .uw-review { background: #c7891f; }
 
-.uw-card { border: 1px solid #e3e8ef; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
-.uw-card-title { font-weight: 600; margin-bottom: 8px; color: #334155; }
+.uw-card { border: 1px solid #e3e8ef; border-radius: 8px; padding: 14px; margin-bottom: 18px; }
+.uw-card-title { font-weight: 600; margin-bottom: 12px; color: #334155; }
+.uw-userinfo { background: #f3f5f8; border-color: #e6eaf0; }
+.uw-userinfo .uw-row { border-bottom-color: #e3e8ef; }
 
-.uw-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed #eef1f5; }
+.uw-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #eef1f5; }
 .uw-row:last-child { border-bottom: none; }
 .uw-k { color: #64748b; }
 .uw-v { font-weight: 600; text-align: right; }
@@ -104,3 +106,36 @@ body {
 .uw-sub { border-top: 1px dashed #e3e8ef; padding-top: 6px; margin-top: 6px; }
 .uw-sub:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
 .uw-sub-title { font-weight: 600; margin-bottom: 4px; }
+
+.uw-foot { font-size: 11px; color: #a0aec0; text-align: right; margin-top: 4px; }
+.uw-header-close { justify-content: flex-end; }
+.uw-modal-body { background: #ffffff; }
+.uw-modal-top { background: #ffffff; padding: 4px 0 10px; }
+
+/* ── Narrow sidebar fit: no sideways scrolling, long values wrap ─────────────── */
+html, body { overflow-x: hidden; max-width: 100%; }
+body { padding: 6px 4px; }
+.uw-card { padding: 12px 10px; }
+.uw-row { gap: 10px; align-items: flex-start; }
+.uw-k { flex: 0 0 auto; white-space: nowrap; }
+.uw-v { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.uw-steps { padding-left: 16px; }
+.uw-textarea { width: 100%; max-width: 100%; }
+.uw-wide body, body.uw-wide { padding: 10px; }
+
+/* Customer 360 as a plain link (no filled button, no highlight) */
+.uw-link {
+  display: inline-block; margin-top: 10px; padding: 0; border: none; background: none;
+  color: #0066cc; font: inherit; font-weight: 600; cursor: pointer;
+  outline: none; -webkit-tap-highlight-color: transparent; box-shadow: none;
+}
+.uw-link:hover { text-decoration: underline; background: none; }
+.uw-link:focus, .uw-link:active { outline: none; background: none; box-shadow: none; }
+.uw-link:focus-visible { text-decoration: underline; }
+
+/* Customer 360 popup: UWorld blue header band */
+.uw-modal-top {
+  background: #0066cc; color: #ffffff; padding: 12px 16px; border-radius: 10px;
+  margin-bottom: 14px; display: flex; align-items: center;
+}
+.uw-modal-top .uw-title { color: #ffffff; font-size: 15px; font-weight: 600; letter-spacing: 0.2px; }

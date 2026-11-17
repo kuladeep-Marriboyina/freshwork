@@ -79,11 +79,9 @@ describe("Customer 360 modal.js", () => {
     expect($("m-error").textContent).toContain("Init failed: nope");
   });
 
-  test("Close button closes the popup", async () => {
+  test("has no Close button (Freshdesk's own close is used)", async () => {
     await boot();
-    const client = await global.app.initialized();
-    $("btnClose").click();
-    expect(client.instance.close).toHaveBeenCalled();
+    expect($("btnClose")).toBeNull();
   });
 
   test("tabs switch the visible panel", async () => {

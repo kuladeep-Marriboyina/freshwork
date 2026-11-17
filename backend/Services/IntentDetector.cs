@@ -8,7 +8,10 @@ public class IntentDetector
 {
     private static readonly (string Intent, string[] Keywords)[] Patterns =
     {
-        ("password_reset", new[] { "password", "reset password", "forgot password", "can't log in", "cant login", "login not working" }),
+        ("email_change",   new[] { "change email", "change my email", "update email", "update my email", "email change", "change of email", "new email address", "email address change", "change the email" }),
+        ("password_reset", new[] { "password", "reset password", "forgot password", "can't log in", "cant login", "login not working",
+                                   "can't login", "cannot login", "cannot log in", "unable to login", "unable to log in",
+                                   "login issue", "login problem", "log in issue", "sign in issue", "can't sign in" }),
         ("account_locked", new[] { "locked", "account locked", "too many attempts", "lockout" }),
         ("refund",         new[] { "refund", "money back", "cancel and refund", "want my money" }),
         ("cancellation",   new[] { "cancel", "cancel subscription", "cancel my order", "unsubscribe" }),

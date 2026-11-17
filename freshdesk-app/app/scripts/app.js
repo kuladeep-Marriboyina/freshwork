@@ -7,7 +7,7 @@ const ACTION_META = {
   AutoResolve:  { label: "Auto-resolved",         cls: "uw-auto",   note: "Handled automatically — reply sent." },
   AutoApprove:  { label: "Auto-approved",         cls: "uw-auto",   note: "Handled automatically — reply sent." },
   AutoDeny:     { label: "Auto-denied (policy)",  cls: "uw-deny",   note: "Denial sent automatically per policy." },
-  AgentReview:  { label: "Needs your review",     cls: "uw-review", note: "Low confidence — please decide using the info below." }
+  AgentReview:  { label: "Need your review",      cls: "uw-review", note: "Low confidence — please decide using the info below." }
 };
 
 init();
@@ -138,12 +138,9 @@ function paint(data) {
 
   const decision = document.getElementById("decision");
   decision.className = "uw-decision " + meta.cls;
-  decision.innerHTML =
-    `<div class="uw-decision-label">${meta.label}</div>` +
-    `<div class="uw-decision-sub">Intent: <b>${escapeHtml(data.intent)}</b> · ` +
-    `Confidence: <b>${Math.round((data.confidence || 0) * 100)}%</b></div>` +
-    `<div class="uw-decision-reason">${escapeHtml(data.reason || "")}</div>` +
-    `<div class="uw-decision-note">${meta.note}</div>`;
+  const pct = Math.round((data.confidence || 0) * 100) + "%";
+  // Every banner: just the decision and the confidence — details are in the card below.
+  decision.innerHTML = `<div class="uw-decision-label">${meta.label} · Confidence: ${pct}</div>`;
 
   const btn = document.getElementById("view360");
   // A modal cannot open another modal, so Customer 360 stays in the sidebar card.

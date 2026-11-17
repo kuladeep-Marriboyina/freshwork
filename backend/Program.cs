@@ -38,6 +38,7 @@ builder.Services.AddScoped<IPolicyRule, RefundApproveRule>();
 builder.Services.AddScoped<IPolicyRule, RefundBorderlineRule>();
 builder.Services.AddScoped<IPolicyRule, AccessIssueRule>();
 builder.Services.AddScoped<IPolicyRule, ExtendSubscriptionRule>();
+builder.Services.AddScoped<IPolicyRule, EmailChangeRule>();
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // The sidebar calls the backend through Freshworks request templates (server to
@@ -245,12 +246,10 @@ app.MapGet("/api/insights", async (
     var (intent, customer, decision) = await Analyze(subject, description, email, detector, data, engine, opts);
 
     // For auto decisions the email is ready; for agent-review, draft one from the steps.
+    // Draft for the agent: the policy email when there is one; otherwise a neutral
+    // acknowledgement (internal steps stay in the card, never in the customer email).
     string replyHtml = decision.CustomerEmailHtml ?? EmailTemplates.Wrap(customer.FullName,
-        "<p>Thank you for contacting UWorld Support regarding your request.</p>" +
-        (decision.SuggestedSteps.Count > 0
-            ? "<p>Here's an update on your case:</p><ul>" +
-              string.Join("", decision.SuggestedSteps.Select(s => $"<li>{s.Text}</li>")) + "</ul>"
-            : ""));
+        "<p>Thank you for contacting UWorld Support. We're reviewing your request and will get back to you shortly.</p>");
 
     var insights = new TicketInsights
     {

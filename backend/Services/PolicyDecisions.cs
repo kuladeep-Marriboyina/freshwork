@@ -15,10 +15,10 @@ public static class PolicyDecisions
         CustomerEmailHtml = customerEmailHtml
     };
 
-    public static Decision AgentReview(string rule, string reason, IEnumerable<string> steps) => new()
+    public static Decision AgentReview(string rule, string reason, IEnumerable<string> steps, double confidence = 0.5) => new()
     {
         Action = PolicyAction.AgentReview,
-        Confidence = 0.5,
+        Confidence = confidence,
         RuleName = rule,
         Reason = reason,
         SuggestedSteps = steps.Select((s, i) => new SuggestedStep { Order = i + 1, Text = s }).ToList()
@@ -30,6 +30,10 @@ public static class PolicyDecisions
 
 public static class EmailTemplates
 {
+    public static string EmailChangeReceived(string name) => Wrap(name, @"
+<p>Thanks for letting us know you'd like to change the email address on your UWorld account.</p>
+<p>To protect your account, we'll verify your identity before making the change. We'll update you shortly.</p>");
+
     public static string Wrap(string name, string body) => $@"
 <p>Hi {name},</p>
 {body}

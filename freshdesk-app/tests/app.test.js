@@ -63,9 +63,7 @@ describe("sidebar app.js", () => {
     });
     expect($("content").style.display).toBe("");
     expect($("loading").style.display).toBe("none");
-    expect($("decision").textContent).toContain("Auto-denied");
-    expect($("decision").textContent).toContain("93%");
-    expect($("decision").innerHTML).toContain("&lt;limit&gt;");
+    expect($("decision").textContent).toBe("Auto-denied (policy) · Confidence: 93%");
     expect($("profile").textContent).toContain("$319.00");
     expect($("replyBox").value).toBe("Hello");
     const items = [...$("steps").querySelectorAll("li")].map(li => li.firstChild.textContent);
@@ -90,8 +88,8 @@ describe("sidebar app.js", () => {
 
   test("string action, missing customer fields and no steps", async () => {
     await boot(undefined, () => ok({ recommendedAction: "Unknown", intent: "x" }));
-    expect($("decision").textContent).toContain("Needs your review");
-    expect($("decision").textContent).toContain("0%");
+    // review banner: only the call to action and the confidence
+    expect($("decision").textContent).toBe("Need your review · Confidence: 0%");
     expect($("profile").textContent).toContain("—");
     expect($("steps-card").style.display).toBe("none");
   });
@@ -186,6 +184,19 @@ describe("sidebar app.js", () => {
     expect($("error").textContent).toContain("request failed");
     await boot(undefined, () => Promise.reject({}));
     expect($("error").textContent).toContain("request failed");
+  });
+
+  test("auto banner shows only the decision and confidence", async () => {
+    await boot(undefined, () => ok({ ...INSIGHTS, recommendedAction: 0, confidence: 0.97, reason: "temp password issued" }));
+    expect($("decision").textContent).toBe("Auto-resolved · Confidence: 97%");
+  });
+
+  test("review banner shows confidence; card has User info and no Copilot header", async () => {
+    await boot(undefined, () => ok({ ...INSIGHTS, recommendedAction: 3, confidence: 0.93, reason: "Recommended: deny." }));
+    expect($("decision").textContent).toBe("Need your review · Confidence: 93%");
+    expect($("decision").textContent).not.toContain("Recommended");
+    expect(document.body.textContent).not.toContain("UWorld Copilot");
+    expect(document.querySelector(".uw-userinfo .uw-card-title").textContent).toBe("User info");
   });
 
   test("shows an error when init fails", async () => {

@@ -8,12 +8,6 @@
 </head>
 <body>
   <div id="app">
-    <div class="uw-header">
-      <img class="uw-logo-img" src="styles/images/uworld-logo.png" alt="UWorld" />
-      <span class="uw-title">UWorld Copilot</span>
-      <span class="uw-version">v2.8</span>
-    </div>
-
     <div id="loading" class="uw-muted">Loading customer insights…</div>
     <div id="error" class="uw-error" style="display:none"></div>
 
@@ -22,10 +16,10 @@
       <div id="decision" class="uw-decision"></div>
 
       <!-- Customer profile -->
-      <div class="uw-card">
-        <div class="uw-card-title">Customer (UWorld DB)</div>
+      <div class="uw-card uw-userinfo">
+        <div class="uw-card-title">User info</div>
         <div id="profile" class="uw-kv"></div>
-        <button id="view360" class="uw-360-btn">📊 View full records (Customer 360)</button>
+        <button id="view360" class="uw-link" type="button">View Customer 360 ›</button>
       </div>
 
       <!-- Suggested steps -->
@@ -55,6 +49,7 @@
 
       <div id="actionMsg" class="uw-actionmsg" style="display:none"></div>
     </div>
+    <div class="uw-foot">v2.14</div>
   </div>
 
   <script src="{{{appclient}}}"></script>

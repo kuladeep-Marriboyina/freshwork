@@ -117,6 +117,12 @@ public static class SampleDataStore
         list.Add(Make(9000006, Inbox, "Sneha Patel",  "+91 90001 00006", "India", Kind.RefundBorderline,    9106, "MCAT Qbank",         30, 12, 429m, memberDays: 20,  labelOverride: "Sneha Patel — borderline refund (agent review)"));
         list.Add(Make(9000007, Inbox, "Vikram Das",   "+91 90001 00007", "India", Kind.PasswordReset,       9107, "USMLE Step 1 Qbank", 50, 90, 319m, memberDays: 500, labelOverride: "Vikram Das — password reset (auto temp password)"));
         list.Add(Make(9000008, Inbox, "Lakshmi Nair", "+91 90001 00008", "India", Kind.AccessIssue,         9108, "NCLEX Qbank",        15,  5, 199m, memberDays: 10,  labelOverride: "Lakshmi Nair — activation issue (agent review)"));
+        list.Add(Make(9000010, Inbox, "Divya Menon",  "+91 90001 00010", "India", Kind.PasswordReset,       9110, "USMLE Step 2 Qbank", 35, 25, 299m, memberDays: 220,
+            subjOverride: "Unable to login", descOverride: "I am unable to login to my account",
+            labelOverride: "Divya Menon — login issue (automatic reply)"));
+        list.Add(Make(9000011, Inbox, "Suresh Babu",  "+91 90001 00011", "India", Kind.AccessIssue,         9111, "NCLEX Qbank",        25, 30, 199m, memberDays: 400,
+            subjOverride: "Change my email address", descOverride: "Please change my email to suresh.new@example.com",
+            labelOverride: "Suresh Babu — email change request (need your review)"));
         list.Add(Make(9000009, Inbox, "Rahul Verma",  "+91 90001 00009", "India", Kind.BillingDispute,      9109, "CPA Review",         70, 45, 999m, memberDays: 365, labelOverride: "Rahul Verma — billing dispute (human only)"));
 
         list.Add(Make(40010, "used.customer@example.com", "Priya Nair", "+91 98888 00000", "India",

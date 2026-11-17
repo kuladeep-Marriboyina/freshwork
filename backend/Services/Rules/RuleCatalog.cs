@@ -197,3 +197,25 @@ public class ExtendSubscriptionRule : IPolicyRule
             });
     }
 }
+
+// 10. Email change request -> AGENT REVIEW (identity must be verified first).
+public class EmailChangeRule : IPolicyRule
+{
+    public string Name => "email_change_agent_review";
+    public bool Matches(PolicyContext ctx) => ctx.Intent == "email_change";
+
+    public Decision Evaluate(PolicyContext ctx)
+    {
+        var d = PolicyDecisions.AgentReview(Name,
+            "Email change request — verify the customer's identity before updating the account email.",
+            new[]
+            {
+                "Verify identity (e.g. last 4 digits of the payment card or recent order details).",
+                "Confirm the new email is not already used by another UWorld account.",
+                "Update the email in UWorld admin and confirm to both the old and new addresses.",
+            },
+            confidence: ctx.IntentConfidence);
+        d.CustomerEmailHtml = EmailTemplates.EmailChangeReceived(ctx.Customer.FullName);
+        return d;
+    }
+}

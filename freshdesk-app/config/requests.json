@@ -14,7 +14,7 @@
         "ticketId": "<%= context.ticketId %>",
         "subject": "<%= context.subject %>",
         "description": "<%= context.description %>",
-        "appVersion": "2.8"
+        "appVersion": "2.14"
       }
     }
   },
